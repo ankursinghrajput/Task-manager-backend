@@ -6,6 +6,7 @@ import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
+import Tasks from './pages/Tasks/Tasks';
 import Profile from './pages/Profile/Profile';
 import Statistics from './pages/Statistics/Statistics';
 import './index.css';
@@ -34,7 +35,7 @@ function App() {
                 path="/tasks"
                 element={
                   <PrivateRoute>
-                    <Dashboard />
+                    <Tasks />
                   </PrivateRoute>
                 }
               />

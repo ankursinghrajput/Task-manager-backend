@@ -1,6 +1,6 @@
 const express = require("express");
 const validateToken = require("../Middleware/validateToken");
-const {createTask, getTasks, updateTask, deleteTask, getTaskStats, getOverDueTasks} = require("../Controllers/taskController");
+const { createTask, getTasks, updateTask, deleteTask, getTaskStats, getOverDueTasks } = require("../Controllers/taskController");
 
 const router = express.Router();
 

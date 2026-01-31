@@ -22,12 +22,12 @@ const Dashboard = () => {
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchTasks();
-        }, 500);
+        fetchTasks();
+    }, []);
 
-        return () => clearTimeout(timer);
-    }, [filter, priorityFilter, searchQuery]);
+    useEffect(() => {
+        fetchStats();
+    }, []);
 
     useEffect(() => {
         fetchStats();
@@ -36,12 +36,11 @@ const Dashboard = () => {
     const fetchTasks = async () => {
         try {
             const params = {};
-            if (filter !== 'all') params.status = filter;
-            if (priorityFilter) params.priority = priorityFilter;
-            if (searchQuery) params.search = searchQuery;
+            // Fetch only 6 tasks to check if there are more than 5
+            params.limit = 6;
 
             const response = await taskAPI.getTasks(params);
-            setTasks(response.data);
+            setTasks(response.data.tasks || response.data);
         } catch (error) {
             console.error('Error fetching tasks:', error);
         } finally {
@@ -110,12 +109,9 @@ const Dashboard = () => {
 
 
 
-    const filterTabs = [
-        { key: 'all', label: 'All' },
-        { key: 'todo', label: 'Pending' },
-        { key: 'in-progress', label: 'In Progress' },
-        { key: 'done', label: 'Completed' },
-    ];
+    // Limit to 5 tasks for dashboard display
+    const displayTasks = tasks.slice(0, 5);
+    const hasMoreTasks = tasks.length > 5;
 
     return (
         <div className="dashboard-container">
@@ -224,31 +220,7 @@ const Dashboard = () => {
                         </button>
                     </div>
 
-                    {/* Filter Tabs */}
-                    <div className="filter-tabs">
-                        <div className="tabs-left">
-                            {filterTabs.map(tab => (
-                                <button
-                                    key={tab.key}
-                                    className={`filter-tab ${filter === tab.key ? 'active' : ''}`}
-                                    onClick={() => setFilter(tab.key)}
-                                >
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        <select
-                            className="priority-select"
-                            value={priorityFilter}
-                            onChange={(e) => setPriorityFilter(e.target.value)}
-                        >
-                            <option value="">All Priorities</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </div>
+                    {/* Filter moved to Tasks page, simplified header */}
 
                     {/* Tasks Grid */}
                     {loading ? (
@@ -270,7 +242,7 @@ const Dashboard = () => {
                         </div>
                     ) : (
                         <div className="tasks-grid">
-                            {tasks.map(task => (
+                            {displayTasks.map(task => (
                                 <TaskCard
                                     key={task._id}
                                     task={task}
@@ -279,6 +251,17 @@ const Dashboard = () => {
                                     onStatusChange={handleStatusChange}
                                 />
                             ))}
+                            {hasMoreTasks && (
+                                <Link to="/tasks" className="see-all-card">
+                                    <div className="see-all-content">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M5 12h14"></path>
+                                            <path d="M12 5l7 7-7 7"></path>
+                                        </svg>
+                                        <span>See All Tasks</span>
+                                    </div>
+                                </Link>
+                            )}
                         </div>
                     )}
                 </section>

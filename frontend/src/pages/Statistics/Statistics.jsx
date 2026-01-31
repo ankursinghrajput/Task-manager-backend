@@ -11,6 +11,7 @@ const Statistics = () => {
     const { toggleSidebar } = useSidebar();
     const [stats, setStats] = useState({ total: 0, completed: 0, pending: 0, overdue: 0 });
     const [loading, setLoading] = useState(true);
+    const [selectedSegment, setSelectedSegment] = useState('completed'); // 'completed', 'inProgress', 'pending'
 
     useEffect(() => {
         fetchStats();
@@ -33,27 +34,32 @@ const Statistics = () => {
         return Math.round((value / stats.total) * 100);
     };
 
+    const inProgress = stats.total - stats.completed - stats.pending;
+
+    // Get selected segment info for center display
+    const getSelectedInfo = () => {
+        switch (selectedSegment) {
+            case 'completed':
+                return { value: getPercentage(stats.completed), label: 'Completed', color: 'var(--success)' };
+            case 'inProgress':
+                return { value: getPercentage(inProgress), label: 'In Progress', color: 'var(--primary)' };
+            case 'pending':
+                return { value: getPercentage(stats.pending), label: 'Pending', color: 'var(--warning)' };
+            default:
+                return { value: getPercentage(stats.completed), label: 'Completed', color: 'var(--success)' };
+        }
+    };
+
     // Generate donut chart gradient
     const getConicGradient = () => {
         if (stats.total === 0) return 'conic-gradient(#e5e7eb 0deg 360deg)';
 
         const completedDeg = (stats.completed / stats.total) * 360;
-        const pendingDeg = (stats.pending / stats.total) * 360;
-        // In progress is implied as remainder (Total - Completed - Pending)
-        // But for this logic let's keep it simple
-
-        // Let's use simpler logic: Completed (Green), Pending (Yellow), Overdue (Red - overlaps pending technically but let's show separate segments)
-        // Note: The stats object usually has total, completed, pending, overdue.
-        // Pending usually means "ToDo". 
-        // Let's assume In Progress = Total - Completed - Pending
-
-        const inProgress = stats.total - stats.completed - stats.pending;
         const inProgressDeg = (inProgress / stats.total) * 360;
 
         let currentDeg = 0;
         const greenEnd = currentDeg + completedDeg;
         const purpleEnd = greenEnd + inProgressDeg;
-        const yellowEnd = purpleEnd + pendingDeg;
 
         return `conic-gradient(
             var(--success) ${currentDeg}deg ${greenEnd}deg,
@@ -62,7 +68,7 @@ const Statistics = () => {
         )`;
     };
 
-    const inProgress = stats.total - stats.completed - stats.pending;
+    const selectedInfo = getSelectedInfo();
 
     return (
         <div className="dashboard-container">
@@ -178,6 +184,7 @@ const Statistics = () => {
                     {/* Donut Chart */}
                     <div className="chart-card">
                         <h3 className="chart-title">Completion Status</h3>
+                        <p className="chart-hint">Click on legend items to see details</p>
                         {stats.total === 0 ? (
                             <div className="empty-state" style={{ padding: '2rem 0' }}>
                                 <p>No data to display</p>
@@ -190,25 +197,34 @@ const Statistics = () => {
                                         style={{ background: getConicGradient() }}
                                     >
                                         <div className="donut-center">
-                                            <span className="donut-total">{Math.round((stats.completed / stats.total) * 100)}%</span>
-                                            <span className="donut-label">Done</span>
+                                            <span className="donut-total" style={{ color: selectedInfo.color }}>{selectedInfo.value}%</span>
+                                            <span className="donut-label">{selectedInfo.label}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="chart-legend">
-                                    <div className="legend-item">
+                                <div className="chart-legend interactive">
+                                    <button
+                                        className={`legend-item ${selectedSegment === 'completed' ? 'active' : ''}`}
+                                        onClick={() => setSelectedSegment('completed')}
+                                    >
                                         <span className="legend-dot" style={{ background: 'var(--success)' }}></span>
                                         <span>Completed</span>
-                                    </div>
-                                    <div className="legend-item">
+                                    </button>
+                                    <button
+                                        className={`legend-item ${selectedSegment === 'inProgress' ? 'active' : ''}`}
+                                        onClick={() => setSelectedSegment('inProgress')}
+                                    >
                                         <span className="legend-dot" style={{ background: 'var(--primary)' }}></span>
                                         <span>In Progress</span>
-                                    </div>
-                                    <div className="legend-item">
+                                    </button>
+                                    <button
+                                        className={`legend-item ${selectedSegment === 'pending' ? 'active' : ''}`}
+                                        onClick={() => setSelectedSegment('pending')}
+                                    >
                                         <span className="legend-dot" style={{ background: 'var(--warning)' }}></span>
                                         <span>Pending</span>
-                                    </div>
+                                    </button>
                                 </div>
                             </>
                         )}

@@ -25,6 +25,7 @@ const getTasks = asyncHandler(async (req, res) => {
     if (req.query.priority) filters.priority = req.query.priority;
     if (req.query.search) {
         const searchRegex = new RegExp(req.query.search, "i");
+        // either title or description matches the search query
         filters.$or = [
             { title: searchRegex },
             { description: searchRegex }
@@ -33,8 +34,12 @@ const getTasks = asyncHandler(async (req, res) => {
 
     // Pagination
     const page = Number(req.query.page) || 1; //default 1
-    const limit = Number(req.query.limit) || 5; //default 5
-    const skip = (page - 1) * limit; //page = 2, limit = 5, skip = 5 i.e Skip first 5 tasks and return next 5.
+    const limit = Number(req.query.limit) || 6; //default 6
+    const skip = (page - 1) * limit; //page = 2, limit = 6, skip = 6 i.e Skip first 6 tasks and return next 6.
+
+    // Get total count for pagination
+    const total = await Task.countDocuments(filters);
+    const totalPages = Math.ceil(total / limit);
 
     const tasks = await Task.find(filters) //Applies filters (user, status, priority)
         .sort({ dueDate: 1 }) //earliest due date come first
@@ -47,7 +52,17 @@ const getTasks = asyncHandler(async (req, res) => {
         ...task, //spread operator, to copy all the field of tasks.
         isOverdue: task.dueDate && task.dueDate < now && task.status !== "done",
     }));
-    res.status(200).json(finalTasks);
+
+    res.status(200).json({
+        tasks: finalTasks,
+        pagination: {
+            currentPage: page,
+            totalPages,
+            totalTasks: total,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+        }
+    });
 });
 
 const updateTask = asyncHandler(async (req, res) => {

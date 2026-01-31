@@ -182,3 +182,49 @@
     height: 10px;
     border-radius: 50%;
 }
+
+/* ===== Interactive Legend ===== */
+.chart-hint {
+    font-size: 0.75rem;
+    color: var(--gray-400);
+    text-align: center;
+    margin-top: -1rem;
+    margin-bottom: 1rem;
+}
+
+.chart-legend.interactive {
+    gap: 0.5rem;
+}
+
+.chart-legend.interactive .legend-item {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.chart-legend.interactive .legend-item:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-300);
+}
+
+.chart-legend.interactive .legend-item.active {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+    color: var(--gray-900);
+    font-weight: 500;
+}
+
+.donut-total {
+    font-size: 1.75rem;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.donut-label {
+    font-size: 0.813rem;
+    color: var(--gray-500);
+    font-weight: 500;
+}
