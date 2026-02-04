@@ -12,28 +12,27 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const checkAuth = async () => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const response = await authAPI.getCurrentUser();
-                setUser(response.data);
-            } catch (error) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-            }
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            setLoading(false);
+            return;
+        }
+        try {
+            const response = await authAPI.getCurrentUser();
+            setUser(response.data);
+        } catch (error) {
+            localStorage.removeItem('accessToken');
+            setUser(null);
         }
         setLoading(false);
     };
 
     const login = async (email, password) => {
         const response = await authAPI.login({ email, password });
-        const { accessToken } = response.data;
-        localStorage.setItem('token', accessToken);
+        localStorage.setItem('accessToken', response.data.accessToken);
 
-        // Get user info after login
         const userResponse = await authAPI.getCurrentUser();
         setUser(userResponse.data);
-        localStorage.setItem('user', JSON.stringify(userResponse.data));
 
         return response;
     };
@@ -43,9 +42,13 @@ export const AuthProvider = ({ children }) => {
         return response;
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+    const logout = async () => {
+        try {
+            await authAPI.logout();
+        } catch (error) {
+            // Ignore errors during logout
+        }
+        localStorage.removeItem('accessToken');
         setUser(null);
     };
 

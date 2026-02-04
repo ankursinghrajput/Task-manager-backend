@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const User = require("../Models/userModel");
+const { generateAccessToken } = require("../Utils/tokenUtils");
 
 const registerUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
@@ -33,17 +34,8 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new Error("All Field are Mandatory!");
     }
     const user = await User.findOne({ email });
-    //Compare password with hashPassword
     if (user && (await bcrypt.compare(password, user.password))) {
-        const accessToken = jwt.sign({
-            user: {
-                username: user.username,
-                email: user.email,
-                id: user.id,
-            },
-        },
-            process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1d" }
-        );
+        const accessToken = generateAccessToken(user);
         res.status(200).json({ accessToken });
     } else {
         res.status(401);
@@ -54,6 +46,14 @@ const loginUser = asyncHandler(async (req, res) => {
 //@access private
 const currentUser = asyncHandler(async (req, res) => {
     res.json(req.user);
+});
+
+const logout = asyncHandler(async (req, res) => {
+    res.status(200).json({ message: "Logged out successfully" });
+});
+
+const logoutAll = asyncHandler(async (req, res) => {
+    res.status(200).json({ message: "Logged out from all devices successfully" });
 });
 
 //@desc Change User Password
@@ -99,4 +99,4 @@ const deleteUser = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "User deleted successfully" });
 });
 
-module.exports = { registerUser, loginUser, currentUser, changePassword, deleteUser };
+module.exports = { registerUser, loginUser, currentUser, changePassword, deleteUser, logout, logoutAll };

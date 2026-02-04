@@ -8,8 +8,8 @@ const Sidebar = ({ user, onLogout }) => {
     const { isDarkMode, toggleTheme } = useTheme();
     const { isSidebarOpen, toggleSidebar, closeSidebar } = useSidebar();
 
-    const handleLogout = () => {
-        onLogout();
+    const handleLogout = async () => {
+        await onLogout();
         navigate('/login');
     };
 
